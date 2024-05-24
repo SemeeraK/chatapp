@@ -1,23 +1,48 @@
-import logo from './logo.svg';
+import { useEffect } from 'react';
 import './App.css';
+import Chat from './Components/Chat';
+import Detail from './Components/Detail';
+import List from './Components/List';
+import Login from './Components/Login';
+import Notification from './Components/Notification';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './Library/Firebase';
+import { useUserstore } from './Library/Userstore';
+import { useChatStore } from './Library/ChatStore';
 
 function App() {
+
+  const {currentUser,isLoading,fetchUserInfo}= useUserstore()
+  const {chatId}= useChatStore()
+
+  // const user = false
+useEffect(()=>{
+
+  const unSub = onAuthStateChanged(auth,(user)=>{
+fetchUserInfo(user?.uid);
+  })
+return () =>{
+  unSub()
+};
+
+},[fetchUserInfo])
+// console.log(currentUser);
+
+if (isLoading) return <div className='loading'>Loading...</div>
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      {
+        currentUser ? (
+          <>
+          <List></List>
+          {chatId && <Chat></Chat>}
+          {chatId && <Detail></Detail>}
+    </>
+
+        ) : (<Login></Login>)
+      }
+      <Notification></Notification>
     </div>
   );
 }
